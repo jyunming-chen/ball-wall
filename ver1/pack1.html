@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<style>
+#info {
+  position: absolute;
+  top: 2%;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  color: #ffff00
+}
+
+body {
+  overflow: hidden;
+}
+
+</style>
+</head>
+
+<body> 
+<div id="info">Demo
+  <br>
+  <button id="start" style="width:20%">Start</button>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/84/three.min.js"></script>
+<script src="https://threejs.org/examples/js/controls/OrbitControls.js">
+</script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<script>
+
+class Ball {
+	constructor (mesh, pos) {
+  	this.pos = pos;
+  	this.vel = new THREE.Vector3();
+  	this.force = new THREE.Vector3(0,-10,0);  // gravity
+    this.mesh = mesh;
+    scene.add (this.mesh);
+  }
+  collideWall (wall) {
+  	let point = this.pos.clone().sub (wall.pos);
+    if (point.dot(wall.normal) < 0 && this.vel.dot(wall.normal) < 0) {
+      this.pos.add (point.projectOnVector(wall.normal));
+      this.vel.add( this.vel.clone().projectOnVector(wall.normal).multiplyScalar(-2));
+    }  
+  }
+  update (dt) {
+  	this.vel.add (this.force.clone().multiplyScalar (dt));
+		this.pos.add (this.vel.clone().multiplyScalar (dt));  
+		
+		// global array: walls
+    // this will NOT work ...
+    // walls.forEach (function (w) { this.collideWall (w)});
+		
+    // arguments of forEach:
+    //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
+    //arr.forEach(function callback(currentValue[, index[, array]]) {
+    //your iterator
+		//}[, thisArg]);
+    
+    walls.forEach (function (w) { this.collideWall (w); }, this);  
+    // here, this (THIS ball) is passed to forEach as thisArg
+
+		this.mesh.position.copy (this.pos);
+  }
+  
+}
+
+
+class Wall {
+	constructor (mesh, pos, normal) {
+  	this.mesh = mesh;
+  	this.pos = pos;
+    this.normal = normal;
+    scene.add (this.mesh);
+  }
+}
+
+//////////////////////////////////////////////////////
+// global variables: 必要之惡
+var scene, renderer, camera;
+var balls = [], walls = [];
+var run = false;
+
+init();
+animate();
+
+$("#start").click(function() {
+  run = !run;
+  if (! run) {
+  	$('#start').text ('start')
+  } else {
+  	$('#start').text ('pause')
+  }
+});
+
+function init() {
+
+  scene = new THREE.Scene();
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x888888);
+  document.body.appendChild(renderer.domElement);
+
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+  camera.position.z = 400;
+  camera.position.y = 300;
+  let controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  window.addEventListener('resize', onWindowResize, false);
+	//////////////////////////////////////////////////////////////////////
+  let ballMesh0 = new THREE.Mesh (new THREE.SphereGeometry(5,20,20), new THREE.MeshNormalMaterial());
+  let ballMesh = ballMesh0.clone();
+  ball = new Ball (ballMesh, new THREE.Vector3(0,100,0))
+  balls.push (ball);
+  
+	let wallMesh0 = new THREE.Mesh (new THREE.PlaneGeometry(200,200), new THREE.MeshNormalMaterial({side:THREE.DoubleSide}));
+	let wallMesh1 = wallMesh0.clone();
+  wallMesh1.position.set (0,0,0);
+	wallMesh1.rotation.x = -Math.PI/2;
+	walls.push ( new Wall (wallMesh1, new THREE.Vector3 (0,0,0), new THREE.Vector3(0,1,0)) );
+
+}
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  if (! run) return;
+  
+  balls.forEach (function(b) { b.update(0.1)});
+  renderer.render(scene, camera);
+}
+
+
+</script>
+</body>
+
+</html>
