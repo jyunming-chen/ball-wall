@@ -1,6 +1,6 @@
 // module "Ballm.js"
-import * as THREE from 'three';
 import {scene, walls} from './mainm.js';
+import * as THREE from 'https://cdn.skypack.dev/three@0.136';
 
 class Ball {
 	constructor (mesh, pos) {

@@ -1,10 +1,23 @@
+//import { OrbitControls } from 'https://cdn.skypack.dev/three@0.136/examples/jsm/controls/OrbitControls.js';
+//import * as THREE from 'https://cdn.skypack.dev/three@0.136';
+import $ from 'jquery';
+import * as THREE from 'three';
+import OrbitControls from 'three-orbitcontrols';
+
+import {Ball} from './Ballm.js';
+import {Wall} from './Wallm.js';
+
+
 //////////////////////////////////////////////////////
-// global variables: 必要之惡
-var scene, renderer, camera;
-var balls = [], walls = [];
+// global variables
+
+var scene, walls;  // exported ...
+
+var renderer, camera;
+var balls = [];
 var run = false;
 
-init();
+init();  
 animate();
 
 $("#start").click(function() {
@@ -16,9 +29,8 @@ $("#start").click(function() {
   }
 });
 
-function init() {
+function init () {
 
-  scene = new THREE.Scene();
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(0x888888);
@@ -27,13 +39,20 @@ function init() {
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
   camera.position.z = 400;
   camera.position.y = 300;
-  let controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  scene = new THREE.Scene();
+
+  walls = []; // required in Ball.js
+
+  let controls = new OrbitControls(camera, renderer.domElement);
 
   window.addEventListener('resize', onWindowResize, false);
-	//////////////////////////////////////////////////////////////////////
+
+  //////////////////////////////////////////////////////////
+  
   let ballMesh0 = new THREE.Mesh (new THREE.SphereGeometry(5,20,20), new THREE.MeshNormalMaterial());
   let ballMesh = ballMesh0.clone();
-  ball = new Ball (ballMesh, new THREE.Vector3(0,100,0))
+  let ball = new Ball (ballMesh, new THREE.Vector3(0,100,0))
   balls.push (ball);
   
 	let wallMesh0 = new THREE.Mesh (new THREE.PlaneGeometry(200,200), new THREE.MeshNormalMaterial({side:THREE.DoubleSide}));
@@ -58,10 +77,14 @@ function onWindowResize() {
 
 
 function animate() {
-  requestAnimationFrame(animate);
-  renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+	renderer.render(scene, camera);
 
-  if (! run) return;
-  balls.forEach (function(b) { b.update(0.1)});
+	if (! run) return;
+
+	balls.forEach (function(b) { b.update(0.1) });
+
 }
+//////////////////////
+export {scene, walls}
 

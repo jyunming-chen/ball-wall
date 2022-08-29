@@ -1,25 +1,20 @@
-import $ from 'jquery';
-import * as THREE from 'three';
-import OrbitControls from 'three-orbitcontrols';
+import { OrbitControls } from 'https://cdn.skypack.dev/three@0.136/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'https://cdn.skypack.dev/three@0.136';
 
 import {Ball} from './Ballm.js';
 import {Wall} from './Wallm.js';
 
-import {scene, init, walls} from './threem.js';
 
 //////////////////////////////////////////////////////
 // global variables
-/*
-var scene, walls;  // moved to 'threem.js'
-*/
+
+var scene, walls;  // exported ...
+
 var renderer, camera;
 var balls = [];
 var run = false;
 
-init();  // defined in threem.js
-
-initStuff();
-
+init();  
 animate();
 
 $("#start").click(function() {
@@ -31,8 +26,7 @@ $("#start").click(function() {
   }
 });
 
-// the rest of init ...
-function initStuff () {
+function init () {
 
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -42,7 +36,11 @@ function initStuff () {
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
   camera.position.z = 400;
   camera.position.y = 300;
-  // let controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  scene = new THREE.Scene();
+
+  walls = []; // required in Ball.js
+
   let controls = new OrbitControls(camera, renderer.domElement);
 
   window.addEventListener('resize', onWindowResize, false);
@@ -77,11 +75,13 @@ function onWindowResize() {
 
 function animate() {
     requestAnimationFrame(animate);
+	renderer.render(scene, camera);
 
 	if (! run) return;
 
 	balls.forEach (function(b) { b.update(0.1) });
 
-	renderer.render(scene, camera);
 }
+//////////////////////
+export {scene, walls}
 
